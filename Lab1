@@ -1,0 +1,19 @@
+#include <stdio.h>
+#include <iostream>
+
+int main(void) 
+{ 
+float l, v1, t; 
+
+printf("L="); 
+scanf_s("%f", &l); 
+
+printf("v1="); 
+scanf_s("%f", &v1); 
+
+t = l / v1; 
+printf("time= %f/n", t); 
+system("pause");
+
+return 0; 
+}
