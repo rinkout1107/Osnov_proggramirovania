@@ -14,8 +14,6 @@ float c; // chislitel ocherednogo elementa
 
 float b; // znamenatel ocherednogo elementa
 
-float x; // vhodnoi parametr ryada
-
 int n; // chislo elementov ryada
 
 int i; // nomer ocherednogo elementa ryada
@@ -25,10 +23,6 @@ int i; // nomer ocherednogo elementa ryada
 printf("Vvedite chislo elementov ryada n= ");
 
 scanf_s("%d", &n);
-
-printf("Vvedite vhodnoi parametr ryada x= ");
-
-scanf_s("%f", &x);
 
 if (n <= 0)// proverka uslovii
 
