@@ -1,0 +1,73 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MASKFRSTBIT	0x80000000
+#define NUMOFBITS	sizeof(long) * 8
+
+void printbinary(long int num);
+
+int main(void)
+{
+	long int N = 0;
+	unsigned int mask = 0, i = 0, cnt = 0, flag = 0;
+
+	printf("Enter N = ");
+	scanf_s("%i", &N);
+	printbinary(N);
+
+	if (N == -1 || N == 0)
+		N = 0;
+	else
+	{
+		mask = MASKFRSTBIT;
+		for (i = 0; i <= NUMOFBITS; i++)
+{
+			if (N & mask)
+			{
+				if (!flag)
+					flag = 1;
+
+				cnt++;
+			}
+			else
+			{
+				if (flag != 0 && cnt >= 3)
+				{
+					mask <<= cnt;
+					while (cnt > 0)
+					{
+						N = N & (~mask);
+						mask >>= 1;
+						cnt--;
+					}
+				}
+				cnt = 0;
+				flag = 0;
+}
+			mask >>= 1;
+		}
+	}
+	printbinary(N);
+	system("pause");
+	return 0;
+}
+
+void printbinary(long int num)
+{
+	unsigned int mask = MASKFRSTBIT;
+
+	printf("\nbinary N: ");
+	for (int i = 1; i <= NUMOFBITS; i++)
+	{
+		if ((num & mask) == 0)
+			printf("0");
+		else
+			printf("1");
+
+		if (i % 8 == 0)
+			printf(" ");
+mask >>= 1;
+	}
+	printf("\n");
+	return;
+}
