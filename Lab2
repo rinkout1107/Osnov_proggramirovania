@@ -25,7 +25,8 @@ void main()
 		i = 1;
 		b = 1;
 		sign = 1;
-		
+		if(n>1)
+                {
 		// cikl
 		do {
 			i = i + 1;
@@ -34,9 +35,21 @@ void main()
 			a = i / b * sign;
 			s = s + a;
 		} while (i < n);
-
+                } 
+                if(n==1)
+                 s = 1;
 		// vivod rezultata
 		printf("Summa ryada s = %6.4f\n", s);
 	}
 	_getch();
-}
+
+} {
+
+
+
+
+
+
+
+
+
