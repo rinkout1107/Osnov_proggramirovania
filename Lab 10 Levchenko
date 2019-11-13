@@ -1,0 +1,127 @@
+#pragma warning (disable : 4996)
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define NO 0
+#define YES 1
+
+// массив, хранящий ключевые слова необходимые для объявления переменных
+char *types[] = { "int\0", "char\0", "float\0", "double\0", "long\0", "unsigned\0", "signed\0", "FILE\0"};
+
+int main(void)
+{
+	// входной файл; выходной файл
+	FILE *f1 = NULL, *f2 = NULL;	
+	// таблица переменных; текущее слово; текущий символ
+	char **table = NULL, *str = NULL, c; 
+	// количество записей в таблице; счетчик фигурных скобок; длина строки; счетчик; флаг определения функции
+	int tabcnt = 0, bktcnt = 0, len = 0, i = 0, delflag = NO;	
+
+	// если есть ошибки при открытии файлов
+	if ((f1 = fopen("file1.c", "r")) == NULL || (f2 = fopen("file2.txt", "w")) == NULL)
+	{
+		printf("file can`t open\n");
+		system("pause");	
+		return 0;	// завершаем прогармму
+	}
+
+	// повторяем, пока не конец файла
+	do {
+		c = fgetc(f1);	// берем символ
+
+		// если снаружи конструкций
+		if (bktcnt == 0)
+		{
+			if (c == '{')	// если символ - открывающая фигурная скобка
+				bktcnt++;	// увеличиваем счетчик
+		}
+		// если внутри конструкции
+		else
+		{
+			// если символ - буква
+			if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
+			{
+				// повторяем, пока не найдем разделитель
+				while (c != ' ' && c != '\t' && c != '\n')
+				{
+					str = (char*)realloc(str, (len + 1) * sizeof(char));	// выделяем память под символ
+					str[len++] = c;	// записываем символ в строку
+					c = fgetc(f1);	// берем символ
+				}
+				str = (char*)realloc(str, (len + 1) * sizeof(char));	// выделяем память под символ
+				str[len] = '\0';	// записываем символ конца строки
+
+				// если найденное слово - ключевое слово объявления переменной
+				if (strcmp(types[0], str) == 0 ||
+					strcmp(types[1], str) == 0 ||
+					strcmp(types[2], str) == 0 ||
+					strcmp(types[3], str) == 0 ||
+					strcmp(types[4], str) == 0 ||
+					strcmp(types[5], str) == 0 ||
+					strcmp(types[6], str) == 0 ||
+					strcmp(types[7], str) == 0)
+				{
+					str[len++] = ' ';	// записываем пробел в строку
+					delflag = NO;	// опускаем флаг определения функции
+					// повторяем, до конца строки
+					do {
+						c = fgetc(f1);	// берем символ
+						// если он - не символ конца строки
+						if (c != '\n' && c != EOF)
+						{
+							// если открывающая скобка
+							if (c == '(')
+								delflag = YES;	// поднимаем флаг
+
+							str = (char*)realloc(str, (len + 1) * sizeof(char));	// выделяем память
+							str[len++] = c;	// записываем символы
+						}
+						// если он - символ конца строки
+						else
+						{
+							str = (char*)realloc(str, (len + 2) * sizeof(char));	// выделяем память
+							str[len++] = '\n';	// записываем символы 
+							str[len++] = '\0';	// окончания строки
+						}
+					} while (c != '\n' && c != EOF);
+					// если флаг не поднят
+					if (delflag == NO)
+					{
+						table = (char**)realloc(table, (tabcnt + 1) * sizeof(char*));	// выделяем память под строку
+						table[tabcnt++] = str;	// записываем строку в массив строк
+					}
+					// если флаг был поднят
+					else
+					{
+						free(str);	// освобождаем память
+						str = NULL;	// обнуляем строку
+					}
+				}
+				// если слово не ключевое
+				else
+				{
+					free(str);	// освобождаем память
+				}
+				str = NULL;	// обнуляем строку
+				len = 0;	// обнуляем длину строки
+			}
+			// если символ - закрывающая фигурная скобка
+			else if (c == '}')
+				bktcnt--;	// уменяшаем счетчик фигурных скобок
+		}
+	} while (c != EOF);
+	fclose(f1);	// закрываем файл
+
+	// повторяем, пока не пройдем весь массив строк
+	for (i = 0; i < tabcnt; i++)
+	{
+		fputs(table[i], f2);	// выводим строку в файл
+		free(table[i]);		// освобождаем память
+	}
+	free(table);	// освобождаем память
+	fclose(f2);		// закрываем файл
+
+	printf("Program successfully complete\n");
+	system("pause");
+	return 0;
+}
