@@ -1,3 +1,4 @@
+#pragma warning(disable : 4996)
 #include<stdio.h>
 #include<Windows.h>
 void selection_w(char s[]);
@@ -5,42 +6,46 @@ int tst(char []);
 void read_and_wr_f();
 int main()
 {
-    read_and_wr_f();
-    return 0;
+read_and_wr_f();
+getchar();
+getchar();
+return 0;
 }
 int tst(char s[])
 {
-    int i,F=0,Fl=0,f=0,flag=0;
-    for(i=0; s[i]!='\0'; i++)
-    {
-        if(s[i]=='i'&&s[i+1]=='n'&&s[i+2]=='t')
-            flag=1;
-    }
-    for(i=0; s[i]!='\0'; i++)
-    {
-        if((s[i]=='c'&&s[i+1]=='o'&&s[i+2]=='n'&&s[i+3]=='s'&&s[i+4]=='t')&&flag==1)
-            F=2;
-    }
-   if(F==2)
-    return 2;
-   else return 0;
+int i,F=0,Fl=0,f=0,flag=0;
+for(i=0; s[i]!='\0'; i++)
+{
+if(s[i]=='i'&&s[i+1]=='n'&&s[i+2]=='t')
+flag=1;
+}
+for(i=0; s[i]!='\0'; i++)
+{
+if((s[i]=='c'&&s[i+1]=='o'&&s[i+2]=='n'&&s[i+3]=='s'&&s[i+4]=='t')&&flag==1)
+F=2;
+}
+if(F==2)
+return 2;
+else return 0;
 }
 void selection_w(char s[])
 {
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    SetConsoleTextAttribute(hConsole, (WORD) ((15 << 4) | 0));
-    printf("%s",s);
-    SetConsoleTextAttribute(hConsole, (WORD) ((0 << 4) | 7));
-    printf(" ");
+HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+SetConsoleTextAttribute(hConsole, (WORD) ((15 « 4) | 0));
+printf("%s",s);
+SetConsoleTextAttribute(hConsole, (WORD) ((0 « 4) | 7));
+printf(" ");
 }
 void read_and_wr_f()
 {
-    FILE *f=fopen("code11.txt","rt");
-    char string[1000];
-    while(fgets(string,1000,f)!=NULL)
-    {
-					if(tst(string)==2)
-        	           selection_w(string);
-        	           else printf("%s",string);
-    }
+FILE *f=fopen("MT2.txt","rt");
+char string[1000];
+while(fgets(string,1000,f)!=NULL)
+{
+if(tst(string)==2)
+selection_w(string);
+else printf_s("%s",string);
+
+}
+fclose(f)
 }
