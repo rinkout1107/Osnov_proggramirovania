@@ -1,51 +1,129 @@
-#pragma warning(disable : 4996)
+#pragma warning(disable: 4996)
 #include<stdio.h>
 #include<Windows.h>
-void selection_w(char s[]);
-int tst(char []);
+#include<string.h>
+#include <stdlib.h>
+#include<ctype.h>
+void selection_w(char s);
+int tst(char[]);
+void get_con(void);
 void read_and_wr_f();
+char **strings;
+int str_c = 0;
 int main()
 {
-read_and_wr_f();
-getchar();
-getchar();
-return 0;
+	get_con();
+
+	read_and_wr_f();
+	getchar(); 
+	
+	return 0;
 }
-int tst(char s[])
+void get_con(void)
 {
-int i,F=0,Fl=0,f=0,flag=0;
-for(i=0; s[i]!='\0'; i++)
-{
-if(s[i]=='i'&&s[i+1]=='n'&&s[i+2]=='t')
-flag=1;
+	FILE *f = fopen("MT2.txt", "rt");
+	char s[1000];
+	while (fgets(s, 1000, f) != NULL)
+	{
+		int i, F = 0, Fl = 0, f = 0, flag = 0;
+		for (i = 0; s[i] != '\0'; i++)
+		{
+			if (s[i] == 'i'&&s[i + 1] == 'n'&&s[i + 2] == 't')
+				flag = 1;
+		}
+		for (i = 0; s[i] != '\0'; i++)
+		{
+			if ((s[i] == 'c'&&s[i + 1] == 'o'&&s[i + 2] == 'n'&&s[i + 3] == 's'&&s[i + 4] == 't') && flag == 1)
+				F = 2;
+		}
+		if (F == 2)
+		{
+			int fl = 0,pos;
+			for (int k = 0; s[k] != '\0'; k++)
+			{
+				if (s[k] == ' ' || s[k] == '=')
+				{
+					if (fl == 1 && (s[k]=='='||s[k+1]=='='))
+					{
+						int j=0;
+						strings = (char**)realloc(strings, (str_c + 1) * sizeof(char*));
+						strings[str_c] =(char*) malloc((k - pos) * sizeof(char));
+						for (int l = pos, j=0; l < k; j++, l++)
+							strings[str_c][j] = s[l];
+						strings[str_c][j+1] = '\0';
+						str_c++;
+					}
+					fl = 0;
+				}
+				else if (fl == 0)
+				{
+					fl = 1;
+					pos =k;
+				}
+			}
+		}
+	}
+	fclose(f);
 }
-for(i=0; s[i]!='\0'; i++)
+void selection_w(char s)
 {
-if((s[i]=='c'&&s[i+1]=='o'&&s[i+2]=='n'&&s[i+3]=='s'&&s[i+4]=='t')&&flag==1)
-F=2;
-}
-if(F==2)
-return 2;
-else return 0;
-}
-void selection_w(char s[])
-{
-HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-SetConsoleTextAttribute(hConsole, (WORD) ((15 « 4) | 0));
-printf("%s",s);
-SetConsoleTextAttribute(hConsole, (WORD) ((0 « 4) | 7));
-printf(" ");
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, (WORD)((15 << 4) | 0));
+	printf("%c", s);
+	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | 7));
 }
 void read_and_wr_f()
 {
-FILE *f=fopen("MT2.txt","rt");
-char string[1000];
-while(fgets(string,1000,f)!=NULL)
-{
-if(tst(string)==2)
-selection_w(string);
-else printf_s("%s",string);
-
+	FILE *f = fopen("MT2.txt", "rt");
+	char string[1000];
+	while (fgets(string, 1000, f) != NULL)
+	{
+		if(tst(string)==0)
+			printf_s("%s",string);
+	}
+	fclose(f);
 }
-fclose(f)
+int tst(char s[])
+{
+	int F = 0;
+	
+		for (int i = 0; i < str_c; i++)
+		{
+
+			int fl = 0, pos;
+			for (int k = 0; s[k] != '\0'; k++)
+			{
+				if (isspace(s[k]) != 0 || s[k] == '=' || s[k] == '(' || s[k] ==';')
+				{
+					if (fl == 1)
+					{
+						int j = 0;
+						int f = 0;
+						for (int l = pos, j = 0; l < k; j++, l++)
+						{
+							if (strings[i][j] != s[l]) f = 1;
+						}
+						if (f == 0)
+						{
+							for (int l = 0; l < pos; l++) printf_s("%c", s[l]);//выделение всего что до константы
+							for (int l = pos; l < k; l++)
+								selection_w(s[l]);//выделение одного символа
+							for (int l = k; s[l] != '\0'; l++)printf_s("%c", s[l]);//выделение все, что после константы
+							F = 2;
+							break;
+						}
+						
+					}
+					fl = 0;
+				}
+				else if (fl == 0)
+				{
+					fl = 1;
+					pos = k;
+				}
+			}
+		}
+	
+	if (F != 2) return 0;
+	else return 1;
 }
