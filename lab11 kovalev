@@ -1,0 +1,198 @@
+#pragma warning (disable : 4996)
+#include <stdio.h>
+#include <string.h>
+#include <Windows.h>
+
+char *types[5] =
+{
+"char\0", "double\0", "float\0", "int\0", "void\0"
+};
+
+
+int main(void)
+{
+	HANDLE hStd = GetStdHandle(STD_OUTPUT_HANDLE);
+	WORD stdfgColor = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+	WORD hlfgColor = FOREGROUND_RED | FOREGROUND_BLUE;
+	FILE *inf = NULL;
+	char *type = NULL, *word = NULL, c;
+	int i, bkt = 0, len = 0, tflag = FALSE;
+
+	if ((inf = fopen("infile.c", "r")) == NULL)
+	{
+		printf("File open error\n");
+		system("pause");
+		return -1;
+	}
+
+	while ((c = fgetc(inf)) != EOF)
+	{
+		// если найден допустимый для идентификатора или ключевого слова символ
+		if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_')
+		{
+			word = (char*)realloc(word, (len + 1) * sizeof(char));
+			word[len++] = c;	// записываем его в массив word
+		}
+		// если найден любой другой символ
+		else
+		{
+			// если массив word не пустой
+			if (word != NULL)
+			{
+				word = (char*)realloc(word, (len + 1) * sizeof(char));
+				word[len] = '\0';
+				// проверяем на совпадения слова с типом возвращаемого значения
+				tflag = FALSE;
+				if (strcmp(types[0], word) == 0 ||
+					strcmp(types[1], word) == 0 ||
+					strcmp(types[2], word) == 0 ||
+					strcmp(types[3], word) == 0 ||
+					strcmp(types[4], word) == 0)
+				{
+					tflag = TRUE;	// поднимаем флаг типа данных, если было совпадение
+				}	
+
+				// если флаг типа данных поднят
+				if (tflag == TRUE)
+				{
+					type = word;	// сохраняем слово в массив типа данных
+					word = NULL;
+					len = 0;
+
+					// пропускаем разделители до следующего слова
+					while ((c = fgetc(inf)) == ' ' || c == '\t');
+					// пока не закончится идентификатор
+					while (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' || c == ' ' || c == '\t')
+					{
+						word = (char*)realloc(word, (len + 1) * sizeof(char));
+						word[len++] = c;
+						c = fgetc(inf);
+					}
+					word = (char*)realloc(word, (len + 1) * sizeof(char));
+					word[len] = '\0';
+					// если за идентификатором идет открывающая круглая скобка, то это заголовок функции
+					if (c == '(')
+						SetConsoleTextAttribute(hStd, hlfgColor);	// меняем цвет выводимого текста
+					// выводим тип возвращаемого значения
+					for (i = 0; type[i] != '\0'; i++)
+						fputc(type[i], stdout);
+					fputc(' ', stdout);		// выводим пробел
+					// выводим идентификатор
+					for (i = 0; word[i] != '\0'; i++)
+						fputc(word[i], stdout);
+					// выводим оставшуюся строку из файла
+					while (c != '\n')
+					{
+						fputc(c, stdout);
+						c = fgetc(inf);
+					}
+
+					SetConsoleTextAttribute(hStd, stdfgColor);	// ставим цвет текста по умолчанию
+					free(type);		// освобождаем память
+					free(word);
+					type = NULL;	// обнуляем указатели
+					word = NULL;
+					len = 0;
+					tflag = FALSE;	
+				}
+				// если флаг типа данных не поднят
+				else
+				{
+					// выводим слово
+					for (i = 0; word[i] != '\0'; i++)
+						fputc(word[i], stdout);
+
+					free(word);
+					word = NULL;
+					len = 0;
+				}
+			}
+
+			// прповеряем какой символ найден
+			switch (c)
+			{
+			case '{':	// если найдена открывающая фигурная скобка, то началось тело функции
+				bkt++;
+				fputc(c, stdout);
+				// повторяем пока не дойдем до конца тела функции
+				while (bkt != 0)
+				{
+					c = fgetc(inf);
+
+					if (c == '{')
+						bkt++;
+					else if (c == '}')
+						bkt--;
+
+					fputc(c, stdout);	
+				}
+				break;
+			case '/':	// найден обратный слеш
+				fputc(c, stdout);
+				c = fgetc(inf);
+				// если за ним найден еще один обратный слешь
+				if (c == '/')
+				{	// то текущая строка - однострочный комментарий
+					fputc(c, stdout);
+					// выводим символы, пока не достигнем конца строки
+					while ((c = fgetc(inf)) != '\n' && c != EOF)
+						fputc(c, stdout);
+					ungetc(c, inf);
+				}
+				// если за ним найден символ звездочки
+				else if (c == '*')
+				{	// то мы внутри многострочного комментария
+					fputc(c, stdout);
+					// выводим символы пока не достигнем конца многострочного комментария
+					while (TRUE)
+					{
+						if ((c = fgetc(inf)) == '*')
+						{
+							fputc(c, stdout);
+							if ((c = fgetc(inf)) == '/')
+							{
+								fputc(c, stdout);
+								break;
+							}
+						}
+						fputc(c, stdout);
+					}
+				}
+				// иначе
+				else
+					ungetc(c, inf);	// возвращаем взятый символ в файл
+				break;
+			case '#':	// найдена решетка, директивы препроцессора
+				fputc(c, stdout);
+				// выводим символы пока не достигнем конца строки
+				while ((c = fgetc(inf)) != '\n' && c != EOF)
+					fputc(c, stdout);
+				ungetc(c, inf);
+				break;
+			case '\'':		// найдена одинарная кавычка
+				// выводим три символа подряд
+				fputc(c, stdout);
+				c = fgetc(inf);
+				fputc(c, stdout);
+				c = fgetc(inf);
+				fputc(c, stdout);
+				break;
+			case '\"':		// наййдена двойная кавчка
+				fputc(c, stdout);
+				// выводим символы, пока не найдем еще одну двойную кавычку
+				while ((c = fgetc(inf)) != '\"')
+					fputc(c, stdout);
+				fputc(c, stdout);
+				break;
+			default:	// любой другой символ
+				fputc(c, stdout);	// просто выводим его
+				break;
+			}
+		}
+	}
+	fclose(inf);
+
+	printf("\n\n\n");
+	system("pause");
+	return 0;
+}
